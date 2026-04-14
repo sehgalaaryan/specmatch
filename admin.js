@@ -1,7 +1,7 @@
-﻿// --- HIGHEST SECURITY LAYER (AES-256-GCM) ---
+// --- HIGHEST SECURITY LAYER (AES-256-GCM) ---
 
 const SALT = new TextEncoder().encode("SpecMatch_Static_Salt"); // Static salt for key derivation
-const ADMIN_HASH = "240be518fabd2724ddb6f0403fed3d5a3c46a23a3d20e64f7ceec847d0e7e16a"; // Hash for "admin123"
+const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // Hash for "admin123"
 
 async function deriveKey(password) {
     const pwUtf8 = new TextEncoder().encode(password);
