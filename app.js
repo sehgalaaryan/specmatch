@@ -1,49 +1,9 @@
-﻿// State management
+// State management
 let currentTheme = 'light';
+let currentCategory = 'mobile';
 let selectedDevices = [];
 let searchQuery = '';
-let allDevices = [...devices]; // Start with public devices from data.js
-
-// HIGHEST SECURITY: Try to load encrypted local devices if authenticated
-async function loadEncryptedData() {
-    const encrypted = localStorage.getItem('customDevicesEncrypted');
-    const isAuthenticated = sessionStorage.getItem('admin-authenticated') === 'true';
-    const sessionKey = sessionStorage.getItem('session-key-check');
-
-    if (encrypted && isAuthenticated && sessionKey) {
-        try {
-            const password = atob(sessionKey);
-            const decrypted = await decryptData(encrypted, password);
-            if (decrypted) {
-                allDevices = [...devices, ...decrypted];
-                renderDevices(); // Re-render with new data
-            }
-        } catch (e) {
-            console.warn("Failed to decrypt local data for main site view.");
-        }
-    }
-}
-
-// Minimal Decryption Logic (must match admin.js exactly)
-async function decryptData(base64Data, password) {
-    try {
-        const salt = new TextEncoder().encode("SpecMatch_Static_Salt");
-        const pwUtf8 = new TextEncoder().encode(password);
-        const pwKey = await crypto.subtle.importKey('raw', pwUtf8, 'PBKDF2', false, ['deriveKey']);
-        const key = await crypto.subtle.deriveKey(
-            { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-            pwKey,
-            { name: 'AES-GCM', length: 256 },
-            false,
-            ['decrypt']
-        );
-        const combined = new Uint8Array(atob(base64Data).split("").map(c => c.charCodeAt(0)));
-        const iv = combined.slice(0, 12);
-        const ciphertext = combined.slice(12);
-        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
-        return JSON.parse(new TextDecoder().decode(decrypted));
-    } catch (err) { return null; }
-}
+let allDevices = (typeof devices !== 'undefined') ? [...devices] : []; // Using static array from data.js
 
 // DOM Elements
 const deviceGrid = document.getElementById('device-grid');
@@ -57,37 +17,42 @@ const comparisonTableContainer = document.getElementById('comparison-table-conta
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    renderDevices();
-    setupThemeSwitcher();
-    setupSearch();
-    setupComparison();
-    loadEncryptedData(); // Try to fetch the "Secure" local draft
-});
-
-// Theme Switcher Logic
-function setupThemeSwitcher() {
-    const btns = {
-        light: document.getElementById('btn-light'),
-        dark: document.getElementById('btn-dark'),
-        vibrant: document.getElementById('btn-vibrant')
-    };
-
-    if (!btns.light || !btns.dark || !btns.vibrant) return;
-
-    Object.keys(btns).forEach(theme => {
-        btns[theme].addEventListener('click', () => {
-            document.body.setAttribute('data-theme', theme);
-            Object.values(btns).forEach(b => b.classList.remove('active'));
-            btns[theme].classList.add('active');
-            currentTheme = theme;
-            localStorage.setItem('preferred-theme', theme);
-        });
+    // Shared Theme Switching initialized through AppUtils
+    AppUtils.setupThemeSwitcher({
+        light: 'btn-light',
+        dark: 'btn-dark',
+        vibrant: 'btn-vibrant'
     });
 
-    const savedTheme = localStorage.getItem('preferred-theme');
-    if (savedTheme && btns[savedTheme]) {
-        btns[savedTheme].click();
+    setupCategorySwitcher();
+    setupSearch();
+    setupComparison();
+    
+    // Explicitly sync UI with default category
+    const defaultBtn = document.querySelector(`.cat-btn[data-category="${currentCategory}"]`);
+    if (defaultBtn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        defaultBtn.classList.add('active');
     }
+
+    renderDevices();
+});
+
+// Category Switcher Logic
+function setupCategorySwitcher() {
+    const btns = document.querySelectorAll('.cat-btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentCategory = btn.getAttribute('data-category');
+            
+            // UI Update
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Filter and render
+            renderDevices();
+        });
+    });
 }
 
 // Search Logic
@@ -103,47 +68,39 @@ function setupSearch() {
 function renderDevices() {
     if (!deviceGrid) return;
 
-    const filtered = allDevices.filter(d => 
-        d.name.toLowerCase().includes(searchQuery) || 
-        d.brand.toLowerCase().includes(searchQuery)
-    );
+    // Safety guard for empty database
+    if (allDevices.length === 0) {
+        deviceGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">No device data found. Please ensure data.js is present.</div>';
+        return;
+    }
+
+    // Filter by Category AND Search Query
+    const filtered = allDevices.filter(d => {
+        const matchesCategory = d.category === currentCategory;
+        const matchesSearch = (d.name && d.name.toLowerCase().includes(searchQuery)) || 
+                            (d.brand && d.brand.toLowerCase().includes(searchQuery));
+        return matchesCategory && matchesSearch;
+    });
 
     deviceGrid.innerHTML = '';
     
     if (filtered.length === 0) {
-        deviceGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">No devices found matching your search.</div>';
+        deviceGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">No ${currentCategory}s found matching your search.</div>`;
         return;
     }
 
     filtered.forEach((device, index) => {
         const isSelected = selectedDevices.some(sd => sd.id === device.id);
-        const card = document.createElement('div');
-        card.className = 'device-card';
+        
+        const cardWrapper = document.createElement('div');
+        // Use centralized rendering from utils.js
+        cardWrapper.innerHTML = AppUtils.renderDeviceCard(device, isSelected, false);
+        
+        const card = cardWrapper.firstElementChild;
         card.style.transitionDelay = `${index * 50}ms`;
-        
-        const battery = device.specs.Battery ? String(device.specs.Battery).split(' ')[0] : 'N/A';
-        const display = device.specs.Display ? String(device.specs.Display).split(' ')[0] : 'N/A';
-        const proc = device.specs.Processor ? String(device.specs.Processor).split(' ')[0] : 'N/A';
-        
-        card.innerHTML = `
-            <div class="device-image-container">
-                <img src="${device.image}" alt="${device.name}" class="device-image" onerror="this.src='https://placehold.co/400x600?text=${device.name.replace(/ /g, '+')}'">
-            </div>
-            <div class="device-info">
-                <div class="device-brand">${device.brand}</div>
-                <h3 class="device-name">${device.name}</h3>
-                <div class="device-specs-preview">
-                    <span class="spec-badge">${display} Display</span>
-                    <span class="spec-badge">${proc}</span>
-                    <span class="spec-badge">${battery} mAh</span>
-                </div>
-                <button class="compare-btn ${isSelected ? 'active' : ''}" onclick="toggleCompare('${device.id}')">
-                    ${isSelected ? 'Selected' : 'Add to Compare'}
-                </button>
-            </div>
-        `;
-        
         deviceGrid.appendChild(card);
+        
+        // Trigger entry animation
         setTimeout(() => card.classList.add('visible'), 10);
     });
 }
@@ -237,12 +194,12 @@ function generateComparisonTable() {
 
     categories.forEach(cat => {
         html += `<tr><td class="spec-name">${cat.name}</td>`;
-        const values = selectedDevices.map(d => String(d.specs[cat.key] || ''));
+        const values = selectedDevices.map(d => String((d.specs && d.specs[cat.key]) || ''));
         const bestIndex = findBestValue(cat.key, values);
 
         selectedDevices.forEach((d, i) => {
             const isBest = i === bestIndex;
-            const val = d.specs[cat.key] || 'N/A';
+            const val = (d.specs && d.specs[cat.key]) || 'N/A';
             html += `<td class="spec-value ${isBest ? 'winner' : ''}">${val} ${isBest ? '✓' : ''}</td>`;
         });
         html += `</tr>`;
@@ -270,6 +227,8 @@ function findBestValue(key, values) {
             const min = Math.min(...numbers);
             return min === Infinity ? -1 : numbers.indexOf(min);
         }
-    } catch(e) {}
+    } catch(e) {
+        console.error("Comparison ranking error:", e);
+    }
     return -1;
 }
