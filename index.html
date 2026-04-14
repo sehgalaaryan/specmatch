@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpecMatch | Compare Tech Devices</title>
+    <meta name="description" content="Ultimate tech comparison tool for phones, laptops, and components.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="light">
+    
+    <header class="glass">
+        <div class="container nav-wrapper">
+            <nav>
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-1.1 0-2-1.1-2-2.5S8.9 6 10 6h4"></path><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path><path d="M7 13h2"></path><path d="M15 11h2"></path></svg>
+                    <span>SpecMatch</span>
+                </div>
+                
+                <div class="theme-switcher">
+                    <a href="admin.html" class="theme-btn" title="Admin Dashboard" style="text-decoration: none; margin-right: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </a>
+                    <button class="theme-btn active" id="btn-light" title="Light Mode">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </button>
+                    <button class="theme-btn" id="btn-dark" title="Dark Mode">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                    </button>
+                    <button class="theme-btn" id="btn-vibrant" title="Vibrant Mode">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero-section">
+            <h1 style="font-size: 3.5rem; font-weight: 800; text-align: center; margin-bottom: 1rem; letter-spacing: -0.05em;">Compare Tech with Precision</h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; font-size: 1.1rem;">Discover the perfect device by comparing detailed specs side-by-side.</p>
+            
+            <div class="search-container">
+                <input type="text" id="device-search" class="search-input" placeholder="Search devices (e.g. iPhone, Samsung, Pixel)...">
+            </div>
+        </section>
+
+        <section id="device-grid" class="device-grid">
+            <!-- Devices will be populated here by JavaScript -->
+        </section>
+    </main>
+
+    <!-- Compare Tray -->
+    <div id="compare-tray" class="compare-tray glass">
+        <div class="tray-content">
+            <div id="selected-items" class="selected-items">
+                <!-- Seleted items will appear here -->
+            </div>
+            <button id="go-compare" class="go-compare-btn">Compare Now</button>
+        </div>
+    </div>
+
+    <!-- Comparison Overlay -->
+    <div id="comparison-overlay" class="comparison-overlay">
+        <button id="close-overlay" class="close-overlay">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div class="container" style="max-width: 1000px;">
+            <h2 id="comparison-title" style="font-size: 2.5rem; text-align: center; margin-bottom: 3rem; font-weight: 800;">Comparison Result</h2>
+            <div id="comparison-table-container">
+                <!-- Table generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
