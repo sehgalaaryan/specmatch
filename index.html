@@ -21,39 +21,43 @@
 </head>
 
 <body data-theme="light">
+    <!-- Nav Drawer Overlay -->
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+
     <!-- Header/Nav -->
     <header class="glass">
         <div class="container nav-wrapper">
-            <nav id="main-nav">
-                <div class="logo">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M11 15h2a2 2 0 1 0 0-4h-3c-1.1 0-2-1.1-2-2.5S8.9 6 10 6h4"></path>
-                        <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path>
-                        <path d="M7 13h2"></path>
-                        <path d="M15 11h2"></path>
-                    </svg>
-                    <span>SpecMatch</span>
+            <nav id="main-nav" class="nav-wrapper w-full">
+                <!-- Left: Unified Icon Unit + Split Text Link -->
+                <div class="logo-area">
+                    <button id="menu-toggle" class="logo-btn-integrated" aria-label="Toggle Navigation">
+                        <!-- Truly Unified Brand Icon (Lines + S-Logo) -->
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" opacity="0.3"></circle>
+                            <path d="M7 8h10M7 12h10M7 16h10" opacity="0.6"></path>
+                            <path d="M8 8h8a2 2 0 1 1 0 4H8a2 2 0 1 0 0 4h8" stroke-width="3"></path>
+                        </svg>
+                    </button>
+                    <a href="index.html" class="logo-text">SpecMatch</a>
                 </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <a href="admin.html" class="theme-btn" title="Admin Dashboard"
-                        style="text-decoration: none; margin-right: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
-                            </path>
+
+                <!-- Center: Desktop Nav -->
+                <div class="center-nav">
+                    <button class="nav-link active" data-category="mobile">Mobiles</button>
+                    <button class="nav-link" data-category="tablet">Tablets</button>
+                    <button class="nav-link" data-category="laptop">Laptops</button>
+                </div>
+
+                <!-- Right: Action Buttons -->
+                <div class="action-cluster">
+                    <a href="admin.html" class="admin-action-btn" title="Admin Dashboard">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
                         </svg>
+                        <span>Admin</span>
                     </a>
-                    <div class="category-nav" style="margin: 0; gap: 0.5rem;">
-                        <button class="cat-btn active" data-category="mobile"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Mobiles</button>
-                        <button class="cat-btn" data-category="tablet"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Tablets</button>
-                        <button class="cat-btn" data-category="laptop"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Laptops</button>
-                    </div>
+                    <!-- ... Theme switcher ... (rest remains) -->
 
                     <div class="theme-switcher">
                         <button class="theme-btn active" id="btn-light" title="Light Mode">
@@ -90,15 +94,35 @@
         </div>
     </header>
 
-    <main class="container">
-        <section class="hero-section">
-            <h1
-                style="font-size: 3.5rem; font-weight: 800; text-align: center; margin-bottom: 1rem; letter-spacing: -0.05em;">
-                Compare Tech with Precision</h1>
-            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; font-size: 1.1rem;">
-                Discover the perfect device by comparing detailed specs side-by-side.</p>
+    <!-- Mobile Navigation Drawer -->
+    <div id="nav-drawer" class="nav-drawer glass">
+        <div class="drawer-header">
+            <a href="index.html" class="drawer-logo">SpecMatch</a>
+            <button id="menu-toggle-drawer" class="logo-btn-integrated is-active" aria-label="Close Navigation">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" opacity="0.3"></circle>
+                    <path d="M7 8h10M7 12h10M7 16h10" opacity="0.6"></path>
+                    <path d="M8 8h8a2 2 0 1 1 0 4H8a2 2 0 1 0 0 4h8" stroke-width="3"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="drawer-content">
+            <button class="menu-item active" data-category="mobile">Mobiles</button>
+            <button class="menu-item" data-category="tablet">Tablets</button>
+            <button class="menu-item" data-category="laptop">Laptops</button>
+        </div>
+    </div>
 
-            <div class="search-container">
+    <main class="container">
+        <section class="hero-section text-center">
+            <h1 class="heading-hero reveal">
+                Compare Tech with <span class="text-gradient">Precision</span>
+            </h1>
+            <p class="text-secondary mb-3 reveal" style="font-size: 1.1rem; opacity: 0.8;">
+                Discover the perfect device by comparing detailed specs side-by-side.
+            </p>
+
+            <div class="search-container reveal">
                 <input type="text" id="device-search" class="search-input"
                     placeholder="Search devices (e.g. iPhone, Samsung, Pro)...">
             </div>
@@ -119,16 +143,15 @@
                 </svg>
             </button>
             <div class="container">
-                <h2 style="font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 2rem;">Comparison
-                    Results</h2>
-                <div id="comparison-table-container"></div>
+                <h2 class="heading-hero text-center mb-2" style="font-size: 2.5rem;">Comparison Results</h2>
+                <div id="comparison-table-container" class="reveal"></div>
             </div>
         </div>
 
         <!-- Compare Tray -->
         <div id="compare-tray" class="compare-tray glass">
             <div class="tray-content">
-                <div class="selected-items" id="selected-items">
+                <div class="selected-items" id="selected-items" style="display: flex; gap: 1rem;">
                     <!-- Badges -->
                 </div>
                 <button id="go-compare" class="go-compare-btn">Compare Now</button>
@@ -137,14 +160,16 @@
     </main>
 
     <!-- Footer -->
-    <footer style="margin-top: 5rem; padding: 3rem 0; border-top: 1px solid var(--border); opacity: 0.6;">
-        <div class="container" style="text-align: center; font-size: 0.9rem;">
-            &copy; 2026 SpecMatch
+    <footer class="mt-5" style="padding: 3rem 0; border-top: 1px solid var(--border); opacity: 0.5;">
+        <div class="container text-center" style="font-size: 0.9rem;">
+            &copy; 2026 SpecMatch | Built for Enthusiasts
         </div>
     </footer>
 
     <!-- Scripts -->
-    <script src="data.js"></script>
+    <script src="mobiles.js"></script>
+    <script src="tablets.js"></script>
+    <script src="laptops.js"></script>
     <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>

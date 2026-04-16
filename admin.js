@@ -11,10 +11,37 @@ const CONFIG = {
     KNOWN_HASH: "8c66ae34e062bb20d65e2361099bce8669527e57c8bfbc6484e27f4955c47761"
 };
 
+const SCHEMA = {
+    mobile: ["Display", "Processor", "RAM", "Storage", "Battery", "Camera", "Weight", "OS"],
+    tablet: ["Display", "Processor", "Storage", "Battery", "Camera", "Weight", "OS"],
+    laptop: ["Display", "Processor", "RAM", "Storage", "Graphics", "Battery", "Weight", "OS"]
+};
+
+// Persistence Keys
+const STORAGE_KEY = 'specmatch_local_db';
+
+/**
+ * Loads the database from LocalStorage or falls back to global variables.
+ */
+function loadInitialDB() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error("Failed to parse saved DB", e);
+        }
+    }
+    return {
+        mobile: (typeof MOBILES_DB !== 'undefined') ? [...MOBILES_DB] : [],
+        tablet: (typeof TABLETS_DB !== 'undefined') ? [...TABLETS_DB] : [],
+        laptop: (typeof LAPTOPS_DB !== 'undefined') ? [...LAPTOPS_DB] : []
+    };
+}
+
 // State
-let localDevices = (typeof devices !== 'undefined') ? [...devices] : []; // From data.js
+let localDB = loadInitialDB();
 let isEditMode = false;
-let hasUnsavedChanges = false;
 let currentCategory = 'mobile';
 
 // UI Elements
@@ -57,17 +84,24 @@ loginForm?.addEventListener('submit', async (e) => {
 
 function onAuthSuccess() {
     loginOverlay.style.display = 'none';
-    setupCategorySwitcher();
+    document.body.style.overflow = 'auto'; // Restore scrollbar
     
-    // Explicitly sync UI with default category
-    const defaultBtn = document.querySelector(`.cat-btn[data-category="${currentCategory}"]`);
-    if (defaultBtn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        defaultBtn.classList.add('active');
-    }
+    // Integrated Navigation Logic
+    AppUtils.initNavigation();
 
+    // Integrated Category Management
+    AppUtils.initCategorySwitcher(currentCategory, (newCat) => {
+        currentCategory = newCat;
+        if (!isEditMode) resetForm();
+        renderCloudList();
+        updateDropzoneUI();
+    });
+    
     renderCloudList();
     updatePreview();
+    updateDropzoneUI();
+    updateSaveBanner(); // Sync the loaded state (banner)
+    resetForm();
 }
 
 function handleFailedAttempt() {
@@ -81,50 +115,56 @@ logoutBtn?.addEventListener('click', () => {
     location.reload();
 });
 
-function setupCategorySwitcher() {
-    const btns = document.querySelectorAll('.cat-btn');
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentCategory = btn.getAttribute('data-category');
-            btns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            if (!isEditMode) resetForm();
-            renderCloudList();
-        });
-    });
+// Navigation and Category logic removed (Consolidated in utils.js)
+
+function updateDropzoneUI() {
+    const filenameEl = document.getElementById('expected-filename');
+    if (filenameEl) filenameEl.innerText = currentCategory + 's.xlsx';
+    
+    // Reset status
+    const status = document.getElementById('dropzone-status');
+    if (status) status.style.display = 'none';
 }
 
 // --- DATA MANAGEMENT ---
 
 function saveToLocalState(deviceData) {
+    const list = localDB[currentCategory];
     if (isEditMode) {
-        const index = localDevices.findIndex(d => d.id === deviceData.id);
-        if (index > -1) localDevices[index] = deviceData;
+        const index = list.findIndex(d => d.id === deviceData.id);
+        if (index > -1) list[index] = deviceData;
     } else {
-        localDevices.unshift({
+        list.unshift({
             ...deviceData,
-            category: currentCategory,
-            id: 'dev-' + Date.now()
+            id: AppUtils.generateUniqueId()
         });
     }
     
-    hasUnsavedChanges = true;
     updateSaveBanner();
     renderCloudList();
     resetForm();
+    
+    // Persist to browser storage
+    syncState();
+}
+
+/**
+ * Persists the current localDB state to the browser's LocalStorage.
+ */
+function syncState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(localDB));
 }
 
 function deleteDevice(id) {
     if (!confirm("Remove this device from the active list?")) return;
-    localDevices = localDevices.filter(d => d.id !== id);
-    hasUnsavedChanges = true;
+    localDB[currentCategory] = localDB[currentCategory].filter(d => d.id !== id);
     updateSaveBanner();
     renderCloudList();
+    syncState();
 }
 
 function editDevice(id) {
-    const device = localDevices.find(d => d.id === id);
+    const device = localDB[currentCategory].find(d => d.id === id);
     if (!device) return;
 
     editIdInput.value = device.id;
@@ -162,35 +202,14 @@ function updateDefaultSpecs() {
     const container = document.getElementById('specs-container');
     container.innerHTML = '';
     
-    // Find all unique keys currently used in this category across ALL devices
-    const uniqueKeys = new Set();
-    
-    localDevices
-        .filter(d => d.category === currentCategory)
-        .forEach(d => {
-            if (d.specs) {
-                Object.keys(d.specs).forEach(key => uniqueKeys.add(key));
-            }
-        });
-
-    if (uniqueKeys.size > 0) {
-        // Use the headers found in the database
-        uniqueKeys.forEach(key => addSpecRow(key, ''));
-    } else {
-        // Fallback to sensible defaults if the category is empty
-        const defaults = {
-            mobile: [['Display', ''], ['Processor', ''], ['Battery', '']],
-            tablet: [['Display', ''], ['Processor', ''], ['Battery', '']],
-            laptop: [['Processor', ''], ['Graphics', ''], ['RAM', '']]
-        };
-        (defaults[currentCategory] || []).forEach(([k, v]) => addSpecRow(k, v));
-    }
+    const fields = SCHEMA[currentCategory] || [];
+    fields.forEach(f => addSpecRow(f, ''));
 }
 
 function addSpecRow(k = '', v = '') {
     const div = document.createElement('div');
     div.className = 'specs-grid';
-    div.innerHTML = `<input type="text" placeholder="Spec Name" value="${k}"><input type="text" placeholder="Value" value="${v}"><button type="button" class="remove-spec-btn">🗑️</button>`;
+    div.innerHTML = `<input type="text" placeholder="Spec Name" value="${k}" readonly style="background: rgba(255,255,255,0.03); opacity: 0.7; cursor: default;"><input type="text" placeholder="Value" value="${v}">`;
     document.getElementById('specs-container').appendChild(div);
 }
 
@@ -198,7 +217,7 @@ function renderCloudList() {
     const list = document.getElementById('local-db-list');
     if (!list) return;
 
-    const filtered = localDevices.filter(d => d.category === currentCategory);
+    const filtered = localDB[currentCategory];
 
     if (filtered.length === 0) {
         list.innerHTML = `<p style="opacity: 0.5; font-size: 0.9rem; text-align: center; padding: 2rem;">No items in ${currentCategory} category.</p>`;
@@ -226,32 +245,49 @@ function renderCloudList() {
 // --- SAVE & EXCEL ---
 
 function generateDataJs() {
+    const varName = currentCategory.toUpperCase() + 'S_DB';
+    
+    // Create a deep copy and strip the 'category' property from each item
+    const cleanData = localDB[currentCategory].map(item => {
+        const { category, ...rest } = item;
+        return rest;
+    });
+
     const content = `/**
- * SpecMatch Static Database
+ * SpecMatch ${currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)}s Database
  * Regenerated on ${new Date().toLocaleString()}
  */
-const devices = ${JSON.stringify(localDevices, null, 2)};`;
+const ${varName} = ${JSON.stringify(cleanData, null, 2)};`;
     
     const blob = new Blob([content], { type: 'application/javascript' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'data.js';
+    a.download = currentCategory + 's.js';
     a.click();
     
-    hasUnsavedChanges = false;
     updateSaveBanner();
 }
 
 function updateSaveBanner() {
-    if (saveBanner) saveBanner.style.display = hasUnsavedChanges ? 'flex' : 'none';
+    if (!saveBanner) return;
+
+    const staticData = {
+        mobile: (typeof MOBILES_DB !== 'undefined') ? MOBILES_DB : [],
+        tablet: (typeof TABLETS_DB !== 'undefined') ? TABLETS_DB : [],
+        laptop: (typeof LAPTOPS_DB !== 'undefined') ? LAPTOPS_DB : []
+    };
+
+    // Compare localDB in browser with variables loaded from .js files
+    const isDirty = JSON.stringify(localDB) !== JSON.stringify(staticData);
+    saveBanner.style.display = isDirty ? 'flex' : 'none';
 }
 
 document.getElementById('main-download-btn')?.addEventListener('click', generateDataJs);
 
-async function exportToExcel() {
-    // Filter by current category first
-    const filtered = localDevices.filter(d => d.category === currentCategory);
+function exportToExcel() {
+    // Current category data
+    const filtered = localDB[currentCategory];
     
     if (filtered.length === 0) {
         alert(`No devices in the ${currentCategory} category to export.`);
@@ -260,7 +296,6 @@ async function exportToExcel() {
 
     const rows = filtered.map(d => ({
         ID: d.id,
-        Category: d.category || currentCategory,
         Name: d.name,
         Brand: d.brand,
         Price: d.price || "",
@@ -270,7 +305,7 @@ async function exportToExcel() {
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `${currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)}s`);
-    XLSX.writeFile(wb, `SpecMatch_${currentCategory}_Export.xlsx`);
+    XLSX.writeFile(wb, `${currentCategory}s.xlsx`);
 }
 
 document.getElementById('export-excel-btn')?.addEventListener('click', exportToExcel);
@@ -279,8 +314,7 @@ function processExcelData(json) {
     const mode = confirm("DATABASE SYNC:\n\nClick OK to REPLACE the entire list.\nClick CANCEL to only APPEND new items.");
     
     const formatted = json.map(item => ({
-        id: item.ID || 'dev-' + Math.random().toString(36).substr(2, 9),
-        category: item.Category || item.category || 'mobile',
+        id: item.ID || AppUtils.generateUniqueId(),
         name: item.Name || item.Model || "Unknown",
         brand: item.Brand || item.Manufacturer || "Unknown",
         price: item.Price || item.price || "",
@@ -291,16 +325,106 @@ function processExcelData(json) {
         }, {})
     }));
 
-    if (mode) localDevices = formatted;
-    else localDevices = [...localDevices, ...formatted];
+    if (mode) localDB[currentCategory] = formatted;
+    else localDB[currentCategory] = [...localDB[currentCategory], ...formatted];
 
-    hasUnsavedChanges = true;
     updateSaveBanner();
     renderCloudList();
-    alert('Changes applied! Download the updated data.js to complete the sync.');
+    syncState();
+    alert(`Category "${currentCategory.toUpperCase()}" updated in browser storage! If you see a warning banner, click "Download Updates" to save to your project files.`);
 }
 
 // --- INITIALIZATION ---
+
+function setupExcelListeners() {
+    const dropzone = document.getElementById('excel-dropzone');
+    const input = document.getElementById('excel-input');
+
+    if (!dropzone || !input) return;
+
+    dropzone.addEventListener('click', async () => {
+        // Modern File System Access API (Address Bottom Right Arrow)
+        if (window.showOpenFilePicker) {
+            try {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: `SpecMatch ${currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)}s (.xlsx, .xls, .csv)`,
+                        accept: {
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+                            'application/vnd.ms-excel': ['.xls'],
+                            'text/csv': ['.csv']
+                        }
+                    }],
+                    excludeAcceptAllOption: true,
+                    multiple: false
+                });
+                const file = await fileHandle.getFile();
+                handleExcelFile(file);
+            } catch (err) {
+                // User cancelled or error
+                console.log('Picker cancelled or failed:', err);
+            }
+        } else {
+            // Legacy Fallback
+            input.click();
+        }
+    });
+
+    input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleExcelFile(file);
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--text-primary)';
+        dropzone.style.background = 'var(--accent-glow)';
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.style.borderColor = 'var(--accent)';
+        dropzone.style.background = 'var(--bg-secondary)';
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--accent)';
+        dropzone.style.background = 'var(--bg-secondary)';
+        const file = e.dataTransfer.files[0];
+        if (file) handleExcelFile(file);
+    });
+}
+
+function handleExcelFile(file) {
+    const dropzone = document.getElementById('excel-dropzone');
+    const status = document.getElementById('dropzone-status');
+    const expectedPrefix = currentCategory + 's'; // mobiles
+    
+    if (!file.name.toLowerCase().startsWith(expectedPrefix)) {
+        if (status) {
+            status.innerText = `🛑 WRONG FILE: Please upload "${expectedPrefix}.xlsx"`;
+            status.style.display = 'block';
+            
+            // Shake effect
+            dropzone.classList.remove('shake');
+            void dropzone.offsetWidth;
+            dropzone.classList.add('shake');
+        }
+        return;
+    }
+
+    if (status) status.style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.SheetNames[0];
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+        processExcelData(json);
+    };
+    reader.readAsArrayBuffer(file);
+}
 
 if (addDeviceForm) {
     addDeviceForm.addEventListener('submit', (e) => {
@@ -312,7 +436,6 @@ if (addDeviceForm) {
         });
         saveToLocalState({
             id: editIdInput.value || '',
-            category: currentCategory,
             name: document.getElementById('dev-name').value,
             brand: document.getElementById('dev-brand').value,
             image: document.getElementById('dev-image').value,
@@ -344,13 +467,21 @@ function updatePreview() {
     container.innerHTML = AppUtils.renderDeviceCard(device, false, true);
 }
 
-document.getElementById('add-spec-field')?.addEventListener('click', () => addSpecRow());
 cancelEditBtn?.addEventListener('click', resetForm);
 
 function setupEventListeners() {
-    document.querySelectorAll('.remove-spec-btn').forEach(b => b.onclick = (e) => { e.target.closest('.specs-grid').remove(); updatePreview(); });
     document.querySelectorAll('#add-device-form input, #add-device-form select').forEach(i => i.oninput = updatePreview);
 }
+
+document.getElementById('copy-filename-badge')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const name = document.getElementById('expected-filename').innerText;
+    navigator.clipboard.writeText(name).then(() => {
+        const badge = document.getElementById('copy-filename-badge');
+        badge.classList.add('copied');
+        setTimeout(() => badge.classList.remove('copied'), 2000);
+    });
+});
 
 window.editDevice = editDevice;
 window.deleteDevice = deleteDevice;
@@ -359,12 +490,17 @@ document.addEventListener('DOMContentLoaded', () => {
     AppUtils.setupThemeSwitcher({ light: 'btn-light', dark: 'btn-dark', vibrant: 'btn-vibrant' });
     
     // Explicitly sync UI with default category on load (even before login)
-    const defaultBtn = document.querySelector(`.cat-btn[data-category="${currentCategory}"]`);
-    if (defaultBtn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        defaultBtn.classList.add('active');
-    }
+    const allLinks = document.querySelectorAll('.nav-link, .menu-item');
+    allLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('data-category') === currentCategory);
+    });
 
-    if (sessionStorage.getItem('admin-active') === 'true') onAuthSuccess();
-    else resetForm();
+    setupExcelListeners();
+
+    if (sessionStorage.getItem('admin-active') === 'true') {
+        onAuthSuccess();
+    } else {
+        document.body.style.overflow = 'hidden'; // Hide scrollbar for login
+        resetForm();
+    }
 });

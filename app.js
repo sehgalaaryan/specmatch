@@ -3,7 +3,21 @@ let currentTheme = 'light';
 let currentCategory = 'mobile';
 let selectedDevices = [];
 let searchQuery = '';
-let allDevices = (typeof devices !== 'undefined') ? [...devices] : []; // Using static array from data.js
+// Helper to get all devices across categories
+const getAllDevices = () => {
+    return [
+        ...(typeof MOBILES_DB !== 'undefined' ? MOBILES_DB : []),
+        ...(typeof TABLETS_DB !== 'undefined' ? TABLETS_DB : []),
+        ...(typeof LAPTOPS_DB !== 'undefined' ? LAPTOPS_DB : [])
+    ];
+};
+
+const getCategoryDevices = (cat) => {
+    if (cat === 'mobile') return (typeof MOBILES_DB !== 'undefined' ? MOBILES_DB : []);
+    if (cat === 'tablet') return (typeof TABLETS_DB !== 'undefined' ? TABLETS_DB : []);
+    if (cat === 'laptop') return (typeof LAPTOPS_DB !== 'undefined' ? LAPTOPS_DB : []);
+    return [];
+};
 
 // DOM Elements
 const deviceGrid = document.getElementById('device-grid');
@@ -15,52 +29,63 @@ const comparisonOverlay = document.getElementById('comparison-overlay');
 const closeOverlayBtn = document.getElementById('close-overlay');
 const comparisonTableContainer = document.getElementById('comparison-table-container');
 
+// Observer for scroll-in animations
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1 });
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Shared Theme Switching initialized through AppUtils
     AppUtils.setupThemeSwitcher({
         light: 'btn-light',
         dark: 'btn-dark',
         vibrant: 'btn-vibrant'
     });
 
-    setupCategorySwitcher();
+    // Integrated Navigation Logic
+    AppUtils.initNavigation();
+
+    // Integrated Category Management
+    AppUtils.initCategorySwitcher(currentCategory, (newCat) => {
+        currentCategory = newCat;
+        
+        // Animated transition for grid
+        deviceGrid.style.opacity = '0';
+        deviceGrid.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            renderDevices();
+            deviceGrid.style.opacity = '1';
+            deviceGrid.style.transform = 'translateY(0)';
+            setupRevealObserver();
+        }, 300);
+    });
+
     setupSearch();
     setupComparison();
+    setupRevealObserver();
     
-    // Explicitly sync UI with default category
-    const defaultBtn = document.querySelector(`.cat-btn[data-category="${currentCategory}"]`);
-    if (defaultBtn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        defaultBtn.classList.add('active');
-    }
-
+    // Initial render
     renderDevices();
 });
 
-// Category Switcher Logic
-function setupCategorySwitcher() {
-    const btns = document.querySelectorAll('.cat-btn');
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentCategory = btn.getAttribute('data-category');
-            
-            // UI Update
-            btns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Filter and render
-            renderDevices();
-        });
-    });
+// Reveal Observer for scroll-in animations
+function setupRevealObserver() {
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 }
 
 // Search Logic
 function setupSearch() {
     if (!searchInput) return;
+    const debouncedRender = AppUtils.debounce(() => renderDevices(), 250);
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase();
-        renderDevices();
+        debouncedRender();
     });
 }
 
@@ -68,18 +93,17 @@ function setupSearch() {
 function renderDevices() {
     if (!deviceGrid) return;
 
-    // Safety guard for empty database
-    if (allDevices.length === 0) {
-        deviceGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">No device data found. Please ensure data.js is present.</div>';
+    const devices = getCategoryDevices(currentCategory);
+    
+    if (devices.length === 0) {
+        deviceGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">No device data found for this category.</div>';
         return;
     }
 
-    // Filter by Category AND Search Query
-    const filtered = allDevices.filter(d => {
-        const matchesCategory = d.category === currentCategory;
+    const filtered = devices.filter(d => {
         const matchesSearch = (d.name && d.name.toLowerCase().includes(searchQuery)) || 
                             (d.brand && d.brand.toLowerCase().includes(searchQuery));
-        return matchesCategory && matchesSearch;
+        return matchesSearch;
     });
 
     deviceGrid.innerHTML = '';
@@ -91,23 +115,22 @@ function renderDevices() {
 
     filtered.forEach((device, index) => {
         const isSelected = selectedDevices.some(sd => sd.id === device.id);
-        
         const cardWrapper = document.createElement('div');
-        // Use centralized rendering from utils.js
         cardWrapper.innerHTML = AppUtils.renderDeviceCard(device, isSelected, false);
         
         const card = cardWrapper.firstElementChild;
-        card.style.transitionDelay = `${index * 50}ms`;
+        // Staggered delay for the reveal animation
+        card.style.transitionDelay = `${(index % 10) * 100}ms`;
         deviceGrid.appendChild(card);
         
-        // Trigger entry animation
-        setTimeout(() => card.classList.add('visible'), 10);
+        // Observe for animation
+        revealObserver.observe(card);
     });
 }
 
 // Compare Logic
 window.toggleCompare = function(deviceId) {
-    const device = allDevices.find(d => String(d.id) === String(deviceId));
+    const device = getAllDevices().find(d => String(d.id) === String(deviceId));
     if (!device) return;
     
     const index = selectedDevices.findIndex(sd => String(sd.id) === String(deviceId));
@@ -116,7 +139,7 @@ window.toggleCompare = function(deviceId) {
         selectedDevices.splice(index, 1);
     } else {
         if (selectedDevices.length >= 3) {
-            alert('You can compare up to 3 devices at a time.');
+            alert('Limit reached: You can compare up to 3 devices.');
             return;
         }
         selectedDevices.push(device);
@@ -138,9 +161,9 @@ function updateCompareTray() {
     selectedItemsContainer.innerHTML = '';
     selectedDevices.forEach(device => {
         const item = document.createElement('div');
-        item.className = 'selected-item';
+        item.className = 'selected-item reveal visible';
         item.innerHTML = `
-            <span style="font-weight: 600; font-size: 0.9rem;">${device.name}</span>
+            <span style="font-weight: 700; font-size: 0.85rem;">${device.name}</span>
             <button class="remove-item" onclick="toggleCompare('${device.id}')">×</button>
         `;
         selectedItemsContainer.appendChild(item);
@@ -181,12 +204,13 @@ function generateComparisonTable() {
         { name: "Operating System", key: "OS" }
     ];
 
-    let html = `<table class="comparison-table"><thead><tr><th class="spec-name">Feature</th>`;
+    let html = `<table class="comparison-table fadeInUp"><thead><tr><th class="spec-name">Feature</th>`;
     
     selectedDevices.forEach(d => {
-        html += `<th class="comparison-header-cell">
-            <img src="${d.image}" alt="${d.name}" style="height: 100px; object-fit: contain;" onerror="this.src='https://placehold.co/200x300?text=Device'">
-            <div style="font-weight: 800; font-size: 1.1rem; margin-top: 0.5rem;">${d.name}</div>
+        html += `<th class="comparison-header-cell text-center">
+            <img src="${d.image}" alt="${d.name}" style="height: 120px; object-fit: contain; margin-bottom: 1rem;" onerror="this.src='https://placehold.co/200x300?text=Device'">
+            <div style="font-weight: 800; font-size: 1.25rem;">${d.name}</div>
+            <div style="color: var(--accent); font-weight: 700; font-size: 0.9rem;">₹${Number(d.price).toLocaleString('en-IN')}</div>
         </th>`;
     });
     
@@ -199,8 +223,8 @@ function generateComparisonTable() {
 
         selectedDevices.forEach((d, i) => {
             const isBest = i === bestIndex;
-            const val = (d.specs && d.specs[cat.key]) || 'N/A';
-            html += `<td class="spec-value ${isBest ? 'winner' : ''}">${val} ${isBest ? '✓' : ''}</td>`;
+            const val = (d.specs && d.specs[cat.key]) || '—';
+            html += `<td class="spec-value ${isBest ? 'winner' : ''}">${val} ${isBest ? '<span>★</span>' : ''}</td>`;
         });
         html += `</tr>`;
     });
@@ -209,23 +233,44 @@ function generateComparisonTable() {
     comparisonTableContainer.innerHTML = html;
 }
 
+/**
+ * Intelligent comparison ranking for tech specs.
+ */
 function findBestValue(key, values) {
     try {
-        if (key === 'Battery' || key === 'RAM') {
-            const numbers = values.map(v => {
-                const match = v.match(/\d+/);
-                return match ? parseInt(match[0]) : 0;
-            });
-            const max = Math.max(...numbers);
-            return max === 0 ? -1 : numbers.indexOf(max);
+        const numericValues = values.map(v => {
+            if (!v || v === '—') return null;
+            // Extract first number found in string
+            const match = v.replace(/,/g, '').match(/(\d+\.?\d*)/);
+            return match ? parseFloat(match[1]) : null;
+        });
+
+        const isNotEmpty = numericValues.some(v => v !== null);
+        if (!isNotEmpty) return -1;
+
+        if (key === 'Battery' || key === 'RAM' || key === 'Storage') {
+            // Higher is better
+            const max = Math.max(...numericValues.filter(v => v !== null));
+            return numericValues.indexOf(max);
         }
+        
         if (key === 'Weight') {
-            const numbers = values.map(v => {
-                const match = v.match(/\d+/);
-                return match ? parseInt(match[0]) : Infinity;
+            // Lower is better (handling g and kg)
+            const normalized = values.map(v => {
+                const numMatch = v.match(/(\d+\.?\d*)/);
+                if (!numMatch) return Infinity;
+                let num = parseFloat(numMatch[1]);
+                if (v.toLowerCase().includes('kg')) num *= 1000;
+                return num;
             });
-            const min = Math.min(...numbers);
-            return min === Infinity ? -1 : numbers.indexOf(min);
+            const min = Math.min(...normalized);
+            return min === Infinity ? -1 : normalized.indexOf(min);
+        }
+
+        if (key === 'Display') {
+            // Assuming larger screen is 'better' for comparison though subjective
+            const max = Math.max(...numericValues.filter(v => v !== null));
+            return numericValues.indexOf(max);
         }
     } catch(e) {
         console.error("Comparison ranking error:", e);
