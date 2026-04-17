@@ -1,5 +1,6 @@
 /**
  * SpecMatch Mobiles Database
+ * Regenerated on 4/17/2026, 9:59:18 AM
  */
 const MOBILES_DB = [
   {
@@ -15,7 +16,6 @@ const MOBILES_DB = [
       "Storage": "256GB - 1TB",
       "Battery": "4441 mAh",
       "Camera": "48MP Main | 12MP Ultra Wide | 12MP Telephoto",
-      "Weight": "221g",
       "OS": "iOS 17"
     }
   },
@@ -32,7 +32,6 @@ const MOBILES_DB = [
       "Storage": "256GB - 1TB",
       "Battery": "5000 mAh",
       "Camera": "200MP Main | 50MP Periscope | 10MP Tele | 12MP UW",
-      "Weight": "233g",
       "OS": "Android 14"
     }
   },
@@ -49,7 +48,6 @@ const MOBILES_DB = [
       "Storage": "128GB - 1TB",
       "Battery": "5050 mAh",
       "Camera": "50MP Main | 48MP UW | 48MP Tele",
-      "Weight": "213g",
       "OS": "Android 14"
     }
   },
@@ -62,12 +60,245 @@ const MOBILES_DB = [
     "specs": {
       "Display": "6.82-inch LTPO AMOLED",
       "Processor": "Snapdragon 8 Gen 3",
-      "RAM": "12GB - 24GB",
+      "RAM": "12GB",
       "Storage": "256GB - 1TB",
       "Battery": "5400 mAh",
       "Camera": "50MP Main | 64MP Periscope | 48MP UW",
-      "Weight": "220g",
       "OS": "OxygenOS 14"
+    }
+  },
+  {
+    "id": "dev_1776400114865_lkqz07j75",
+    "name": "iPhone 15 Pro Max",
+    "brand": "Apple",
+    "price": "65000",
+    "image": "",
+    "specs": {
+      "Display": "6.7LTPO Super Retina XDR OLED",
+      "Processor": "Apple A17 Pro",
+      "RAM": "6GB",
+      "Storage": "256GB/512GB/1TB",
+      "Battery": "4422 mAh",
+      "Camera": "48MP+12MP+12MP",
+      "OS": "iOS 17"
+    }
+  },
+  {
+    "id": "dev_1776400114865_k8maqtksn",
+    "name": "iPhone 15 Pro",
+    "brand": "Apple",
+    "price": "65001",
+    "image": "",
+    "specs": {
+      "Display": "6.1LTPO Super Retina XDR OLED",
+      "Processor": "Apple A17 Pro",
+      "RAM": "6GB",
+      "Storage": "128GB/256GB/512GB/1TB",
+      "Battery": "3274 mAh",
+      "Camera": "48MP+12MP+12MP",
+      "OS": "iOS 17"
+    }
+  },
+  {
+    "id": "dev_1776400114865_65pimwxla",
+    "name": "iPhone 15 Plus",
+    "brand": "Apple",
+    "price": "65002",
+    "image": "",
+    "specs": {
+      "Display": "6.7Super Retina XDR OLED",
+      "Processor": "Apple A16 Bionic",
+      "RAM": "6GB",
+      "Storage": "128GB/256GB/512GB",
+      "Battery": "4383 mAh",
+      "Camera": "48MP+12MP",
+      "OS": "iOS 17"
+    }
+  },
+  {
+    "id": "dev_1776400114865_baxzkzdq2",
+    "name": "iPhone 15",
+    "brand": "Apple",
+    "price": "65003",
+    "image": "",
+    "specs": {
+      "Display": "6.1Super Retina XDR OLED",
+      "Processor": "Apple A16 Bionic",
+      "RAM": "6GB",
+      "Storage": "128GB/256GB/512GB",
+      "Battery": "3349 mAh",
+      "Camera": "48MP+12MP",
+      "OS": "iOS 17"
+    }
+  },
+  {
+    "id": "dev_1776400114865_0cxfz3vha",
+    "name": "iPhone 16 Pro Max",
+    "brand": "Apple",
+    "price": "65004",
+    "image": "",
+    "specs": {
+      "Display": "6.9LTPO Super Retina XDR OLED",
+      "Processor": "Apple A18 Pro",
+      "RAM": "8GB",
+      "Storage": "256GB/512GB/1TB",
+      "Battery": "4676 mAh",
+      "Camera": "48MP+48MP+12MP",
+      "OS": "iOS 18"
+    }
+  },
+  {
+    "id": "dev_1776400114865_yz24jkc13",
+    "name": "iPhone 16 Pro",
+    "brand": "Apple",
+    "price": "65005",
+    "image": "",
+    "specs": {
+      "Display": "6.3LTPO Super Retina XDR OLED",
+      "Processor": "Apple A18 Pro",
+      "RAM": "8GB",
+      "Storage": "128GB/256GB/512GB/1TB",
+      "Battery": "3582 mAh",
+      "Camera": "48MP+48MP+12MP",
+      "OS": "iOS 18"
+    }
+  },
+  {
+    "id": "dev_1776400114865_83bwlcazz",
+    "name": "iPhone 16 Plus",
+    "brand": "Apple",
+    "price": "65006",
+    "image": "",
+    "specs": {
+      "Display": "6.7Super Retina XDR OLED",
+      "Processor": "Apple A18",
+      "RAM": "8GB",
+      "Storage": "128GB/256GB/512GB",
+      "Battery": "4674 mAh",
+      "Camera": "48MP+12MP",
+      "OS": "iOS 18"
+    }
+  },
+  {
+    "id": "dev_1776400114865_edp4ab553",
+    "name": "iPhone 16",
+    "brand": "Apple",
+    "price": "65007",
+    "image": "",
+    "specs": {
+      "Display": "6.1Super Retina XDR OLED",
+      "Processor": "Apple A18",
+      "RAM": "8GB",
+      "Storage": "128GB/256GB/512GB",
+      "Battery": "3561 mAh",
+      "Camera": "48MP+12MP",
+      "OS": "iOS 18"
+    }
+  },
+  {
+    "id": "dev_1776400114865_fjojjpxdf",
+    "name": "iPhone 16e",
+    "brand": "Apple",
+    "price": "65008",
+    "image": "",
+    "specs": {
+      "Display": "6.1Super Retina XDR OLED",
+      "Processor": "Apple A18",
+      "RAM": "8GB",
+      "Storage": "256GB/512GB",
+      "Battery": "4005 mAh",
+      "Camera": "48MP Fusion",
+      "OS": "iOS 18"
+    }
+  },
+  {
+    "id": "dev_1776400114865_nc5h73i7x",
+    "name": "iPhone 17 Pro Max",
+    "brand": "Apple",
+    "price": "65009",
+    "image": "",
+    "specs": {
+      "Display": "6.9LTPO Super Retina XDR OLED",
+      "Processor": "Apple A19 Pro",
+      "RAM": "12GB",
+      "Storage": "256GB/512GB/1TB/2TB",
+      "Battery": "4823 mAh",
+      "Camera": "48MP+48MP+48MP",
+      "OS": "iOS 26"
+    }
+  },
+  {
+    "id": "dev_1776400114865_upsdvas0i",
+    "name": "iPhone 17 Pro",
+    "brand": "Apple",
+    "price": "65010",
+    "image": "",
+    "specs": {
+      "Display": "6.3LTPO Super Retina XDR OLED",
+      "Processor": "Apple A19 Pro",
+      "RAM": "12GB",
+      "Storage": "256GB/512GB/1TB",
+      "Battery": "3988 mAh",
+      "Camera": "48MP+48MP+48MP",
+      "OS": "iOS 26"
+    }
+  },
+  {
+    "id": "dev_1776400114865_jzo5snwv2",
+    "name": "iPhone 17 Air",
+    "brand": "Apple",
+    "price": "65011",
+    "image": "",
+    "specs": {
+      "Display": "6.5LTPO Super Retina XDR OLED",
+      "Processor": "Apple A19 Pro",
+      "RAM": "12GB",
+      "Storage": "256GB/512GB",
+      "Battery": "N/A",
+      "Camera": "48MP",
+      "OS": "iOS 26"
+    }
+  },
+  {
+    "id": "dev_1776400114865_6a46785sr",
+    "name": "iPhone 17",
+    "brand": "Apple",
+    "price": "65012",
+    "image": "",
+    "specs": {
+      "Display": "6.3LTPO Super Retina XDR OLED",
+      "Processor": "Apple A19",
+      "RAM": "8GB",
+      "Storage": "256GB/512GB",
+      "Battery": "3692 mAh",
+      "Camera": "48MP+48MP",
+      "OS": "iOS 26"
+    }
+  },
+  {
+    "id": "dev_1776400114865_5bghqo2nn",
+    "name": "iPhone 17e",
+    "brand": "Apple",
+    "price": "65013",
+    "image": "",
+    "specs": {
+      "Display": "6.1Super Retina XDR OLED",
+      "Processor": "Apple A19",
+      "RAM": "8GB",
+      "Storage": "256GB/512GB",
+      "Battery": "N/A",
+      "Camera": "48MP Fusion",
+      "OS": "iOS 26"
+    }
+  },
+  {
+    "id": "dev_1776400114865_2wf70rr59",
+    "name": "Unknown",
+    "brand": "Unknown",
+    "price": "",
+    "image": "",
+    "specs": {
+      "Display": ""
     }
   }
 ];
